@@ -1,0 +1,315 @@
+---
+title: "Probability for Statistics / Elements of Probability --- Lab 5 Solutions"
+output:
+  pdf_document: default
+  html_document:
+    theme: yeti
+---
+
+
+## Question 1
+
+The objective of this question is to find the mgf of a negative binomial distribution, and to find the various associated moments. Enter ?dnbinom in the Console for more information on this distribution and related R functions.
+
+It is important to note that the definitions of negative binomial and geometric random variables in R are slightly different from those seen in the lectures. Namely, in R, a negative binomial random variable is defined as the number of ‘FAILED’ trials before the $r$th success, and a geometric random variable is defined as the number of ‘FAILED’ trials before the first success. 
+
+This means that the x parameter in the dnbinom(...) function should denote the number of failures, not trials (as it is taught in the lectures). The other negative binomial R functions should be treated with similar attention.
+
+For this question, we again require the MosaicCalc package.
+
+```{r, message=FALSE, warning=FALSE}
+# This code installs the package only if it is not already installed, and loads it.
+if(!("mosaicCalc" %in% installed.packages()[,"Package"])){
+  install.packages("mosaicCalc", repos = "https://cran.ms.unimelb.edu.au/")
+} 
+library("mosaicCalc")
+```
+
+### (a)
+
+Consider the negative binomial random variable $X \stackrel{d}{=} \text{NB}(r,p)$.
+
+Using the properties of the negative binomial distribution seen in the lectures (where $X$ represents the number of trials), find $\mu$, $\sigma^2$ and $E(X^2)$.
+
+**My answer:**
+
+$\mu = r/p$
+
+$\sigma^2 = r(1-p)/p^2$
+
+$E(X^2) = \sigma^2 + \mu^2 = r(1-p)/p^2 + r^2/p^2 = r(1-p+r)/p^2$
+
+
+### (b)
+
+As per Lab 4 Q1(f), define a function which calculates the $k$th moment of $X$, given specified r and p values.
+
+```{r}
+# Given that the range of the negative binomial distribution is infinite, we must truncate it at 10^6.   The X.Moment function therefore only provides an approximation of the moments.
+
+X.moment <- function(k,r,p) {
+  x <- 0:10^6
+  sum((x+r)^k*dnbinom(x,r,p))
+}
+
+# Let us check the value of the mean for r=4 and p=0.9:
+X.moment(1,4,0.9)
+
+# Let us check the value of the variance for r=4 and p=0.9:
+X.moment(2,4,0.9)-X.moment(1,4,0.9)^2
+```
+
+
+### (c)
+
+As per Lab 4 Q1(i), and recalling the closed form expression of the mgf $M(t)$ of a negative binomial distribution seen in the lectures, define $M'(t)$ and $M''(t)$ as functions of $t$ (and of the parameters of the distribution). 
+
+*As with Lab 4, we may use D(...) to derive symbolically here, given that we are working with analytical expressions.*
+
+```{r}
+# First, define the mgf as a function
+M <- function(t,r,p) {
+  (p*exp(t))^r/(1-(1-p)*exp(t))^r
+}
+
+# Differentiate this function with respect to t twice, defining the derivatives as dM and ddM
+dM <- D(M(t,r,p)~t)
+ddM <- D(dM(t,r,p)~t)
+```
+
+
+### (d)
+
+Consider the random variable $Y \stackrel{d}{=} \text{NB}(4,0.9)$. Find the variance of $Y$ using the functions defined in (c). 
+
+```{r}
+ddM(0,4,.9)-dM(0,4,.9)^2
+```
+
+Does this value make sense given your answer to Part (a)? 
+
+**My answer:**
+
+Yes since the variance is given by $\sigma^2 = r(1-p)/p^2=0.4938272.$
+
+
+***
+
+## Question 2
+
+Let $X$ be a Poisson random variable with mean 3.
+
+### (a)
+
+Create a plot of the pmf of $X$ (over a truncated range).
+
+```{r}
+plot(0:15, dpois(0:15, 3), xlab = "x", ylab = "P(X=x)", main = "pmf of X")
+```
+
+
+### (b)
+
+The *mode* of a random variable is the most likely value(s) of that random variable. Identify the mode(s) of $X$.
+
+```{r}
+dpois(0:6, 3)
+```
+
+**Your answer:**
+
+Both 2 and 3 are modes, judging by the values of the pmf and the plot.
+
+
+### (c)
+
+Re-plot the graph, with different mean (i.e.lambda) values, noting the mode(s) each time. For what lambda values are there two modes? Why? (You may want to make a search on the mode(s) of a Poisson distribution).
+
+**Your answer:**
+
+The mode(s) of a Poisson distribution are $\lceil\lambda\rceil - 1$ and $\lfloor\lambda\rfloor$. Those values are equal when lambda is not an integer. So there are two modes when lambda is an integer, as can be observed in the plots. 
+
+
+
+### (d)
+
+Find $a$ such that $P(a \leq X \leq a+1)$ is maximised.
+
+```{r}
+dpois(0:6, 3)
+```
+**Your answer:**
+
+So choose $a=2$.
+
+
+### (e)
+
+Find $b$ such that $P(b-2 \leq X \leq b)$ is maximised.
+
+
+**Your answer:**
+
+From above, $P(X=4) > P(X=1)$, so choose $b=4$.
+
+***
+
+## Question 3
+
+The objective of this question is to illustrate some interesting relationships between negative binomial and binomial distributions.
+
+Let $X \stackrel{d}{=} \text{NB}(3, 0.1)$ and $Y \stackrel{d}{=} b(12, 0.1)$.
+
+### (a)
+
+Calculate $P(X \leq 12)$ and $P(Y \geq 3)$.
+
+*Note: Remember that R defines negative binomial random variables slightly differently than in the lectures; see Question 1.*
+
+```{r}
+pnbinom(9,3,0.1) # note that we use 9, not 12, here because NumFailedTrials = NumTrials - NumSuccesses = 12-3 = 9
+1-pbinom(2,12,0.1)
+```
+
+
+### (b)
+
+Are the probabilities the same? Why/why not?
+
+**Your answer:**
+
+Yes, the probabilities are the same. This shows the relationship between the binomial and the negative binomial. $P(X \leq 12)$ represents the probability that it will take at most 12 trials to achieve exactly 3 successes (with $p=0.1$), and $P(Y \geq 3)$ represents the probability that we will achieve at least 3 successes in exactly 12 trials. These probabilities are equal because they correspond to equivalent scenarios.
+
+
+***
+
+## Question 4
+
+Let $F(x)=1-(\frac{1}{2}x^2+x+1)e^{-x}, 0<x<\infty$ be the cdf of a continuous r.v. $X$.
+
+
+### (a)
+
+Define the function $F(x)$ in R, and verify that $\lim_{x \to \infty} F(x) = 1$. 
+
+*Remember to avoid naming functions F (or T), as this is confused with False (or True).*
+
+```{r}
+cdf <- function(x) {
+  1-(0.5*x^2+x+1)*exp(-x) 
+}
+cdf(10^6)
+# Use a large truncated value, as R does not deal well with infinity.
+```
+
+
+### (b)
+
+Plot the cdf over $0< x < 15$.
+
+```{r}
+curve(cdf, from=0, to=15, ylab="P(X<x)", main="cdf of X")
+```
+
+
+### (c)
+
+Using the imported D(...) function from the package MosaicCalc, create a function named f which is the pdf of $X$.
+
+```{r}
+f <- D(cdf(x)~x)
+```
+
+
+
+### (d)
+
+Plot the pdf over $0< x< 15$.
+
+```{r}
+curve(f, from=0, to=15, ylab="P(X=x)", main="pdf of X")
+```
+
+
+### (e)
+
+Find $P(X\geq 10)$.
+
+```{r}
+1-cdf(10)
+```
+
+
+### (f)
+
+Find $P(1\leq X<3)$ using the pdf function.
+
+*Hint: recall how to integrate a function from Question 3 in Lab 1.*
+
+```{r}
+integrate(f, 1, 3)
+```
+
+
+### (g)
+
+Find $P(1\leq X<3)$ using the cdf function.
+
+```{r}
+cdf(3)-cdf(1)
+```
+
+
+### (h)
+
+Find $E(X)$.
+
+*Note: You cannot simply write xf(x) as the first argument of the integrate(...) function; instead you need to define a new function as xf(x).*
+
+```{r}
+integrand <- function(x) x*f(x)
+integrate(integrand, 0, Inf)
+```
+
+
+### (i)
+
+Find $E(X^2)$.
+
+```{r}
+integrand2 <- function(x) x^2*f(x)
+integrate(integrand2, 0, Inf)
+```
+
+
+### (j)
+
+Using the imported antiD(...) function from the package MosaicCalc, define the mgf of $X$ as a function.
+
+```{r}
+# As per the integral definition of an mgf, define an integrand...
+integrand3 <- function(x,t) exp(t*x)*f(x)
+
+antiD_integrand3 <- antiD(integrand3(x,t)~x)
+mgf <- function(t) antiD_integrand3(Inf, t) - antiD_integrand3(0, t)
+```
+
+
+### (k)
+
+Create a function which computes the first derivative of $M(t)$, and then evaluate $M'(0)$. Check whether the result is the same as that obtained in (h).
+
+```{r}
+dmgf <- D(mgf(t)~t)
+dmgf(0)
+```
+
+
+### (l)
+
+Create a function which computes the second derivative of $M(t)$, and then evaluate $M''(0)$. Check whether the result is the same as that obtained in (i).
+
+```{r}
+ddmgf <- D(dmgf(t)~t)
+ddmgf(0)
+```

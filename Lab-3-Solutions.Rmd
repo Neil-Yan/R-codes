@@ -1,0 +1,242 @@
+---
+title: "Probability for Statistics / Elements of Probability --- Lab 3 Solutions"
+output:
+  pdf_document: default
+  html_document:
+    theme: yeti
+---
+
+
+## Question 1
+
+Suppose in a lot of 100 fuses there are 20 defective ones. 
+A sample of 5 fuses are randomly selected from the lot without replacement. 
+Let $X$ be the number of defective fuses found in the sample.
+
+### (a)
+
+It is easy to see that the distribution of $X$ is $Hyper(N_1 = 20, N_2 = 80, n = 5)$. 
+
+Find the pmf of $X$, using the given values for $N_1$, $N_2$ and $n$. 
+
+
+*Note that the pmf also requires a range --- the x values for which the pmf is defined.*    
+
+**Either handwrite your answer, or type below.**
+
+The pmf of $X$ is
+$$f(x)=\frac{{20\choose x}{80\choose 5-x}}{{100\choose 5}}
+=\frac{ {\rm binomial}(20,x) {\rm binomial}(80,5-x)}{75287520}; \;x=0,1,2,3,4,5.$$
+
+
+### (b)
+
+Show that the probability $P(X = 0) = 19513/61110 = 0.3193$ using the dhyper(...) function.
+
+*Enter ?dhyper in the Console for a reference on how to use this function.*
+
+```{r}
+dhyper(0,20,80,5)
+```
+
+
+### (c)
+
+The tabulated pmf of $X$ can be computed using the command:
+
+```{r}
+dhyper(0:5,20,80,5)
+```
+
+Use this to fill out the probabilities in the following pmf table:
+
+| x    | 0      | 1      | 2      | 3      | 4      | 5      |
+|------|--------|--------|--------|--------|--------|--------|
+| f(x) | 0.3193 | 0.4201 | 0.2073 | 0.0478 | 0.0051 | 0.0002 |
+
+We can also verify that the above probabilities sum to 1 using the R function
+sum(...). Confirm that this is true.
+
+```{r}
+sum(dhyper(0:5,20,80,5))
+```
+
+
+### (d)
+
+Show that the cumulative probability $P(X \leq 3) = 0.9946458$. 
+
+*Enter ?phyper in the Console for help.*
+
+```{r}
+phyper(3,20,80,5)
+```
+
+
+### (e)
+
+Show that $E(X) = 1$, using the R functions sum(...) and dhyper(...).
+
+```{r}
+sum((0:5)*dhyper(0:5,20,80,5))
+```
+
+
+### (f)
+
+Find $E(X^2)$.
+
+```{r}
+sum((0:5)^2*dhyper(0:5,20,80,5))
+```
+
+
+### (g)
+
+Find $Var(X)$.
+
+```{r}
+sum((0:5)^2*dhyper(0:5,20,80,5))-(sum((0:5)*dhyper(0:5,20,80,5)))^2
+```
+
+
+### (h)
+
+Plot the pmf of $X$.
+
+```{r}
+plot(0:5, dhyper(0:5,20,80,5), type="h", xlab="x", ylab="P(X=x)", main="pmf of X")
+```
+
+
+### (i)
+
+Much like in Lab 2, we can compare the above pmf with simulated observations 
+from this hypergeometric distribution. To generate 10000 independent observations
+from $X$, use the function rhyper(...):
+
+```{r}
+r <- rhyper(10000, 20, 80, 5)
+```
+
+We can compare the results of this simulation with the true probabilities 
+using a histogram. The histogram, generated using the function hist(...) with 
+argument `probability = TRUE', shows the proportion of time we observe each 
+possible outcome of $X$ in our sample.
+We can then superimpose the true probabilities over this histogram:
+
+```{r}
+breaks <- (0:6) - 0.5
+hist(r, breaks, probability = TRUE, 
+     xlab = "Number of Defective Fuses Found", 
+     main = "Simulated Results vs True Probabilities of X")
+points(0:5, dhyper(0:5,20,80,5))
+```
+
+Are the simulation's results approximately equal to the true probabilities? 
+Why might they differ slightly?
+
+**My answer:**
+
+Yes, the simulation's results are approximately equal to the true probabilities.
+They differ slightly because the simulated outcomes are generated randomly, 
+but the difference is small here as this randomness is averaged across many 
+obervations.
+
+
+***
+
+## Question 2
+
+A tetrahedron (four-sided die with outcomes 1,2,3,4) is rolled twice. 
+Let $X$ equal the sum of the two outcomes. The pmf of X can be derived and is 
+given in the following table:
+
+| x                 | 2    | 3    | 4    | 5    | 6    | 7    | 8    |
+|-------------------|------|------|------|------|------|------|------|
+| P(X=x)            | 1/16 | 2/16 | 3/16 | 4/16 | 3/16 | 2/16 | 1/16 |
+| rel.freq1 m=10000 |      |      |      |      |      |      |      |
+| rel.freq2 m=10000 |      |      |      |      |      |      |      |
+
+
+### (a)
+
+Plot the pmf of $X$.
+
+```{r}
+x <- 2:8
+pmf <- c(1,2,3,4,3,2,1)/16
+plot(x, pmf, type="h", ylab="P(X=x)", main="pmf of X")
+```
+
+
+### (b)
+
+In rolling the tetrahedron twice as a random experiment, we use R to simulate 
+10000 trials of the experiment and then calculate the relative frequency table 
+of the generated outcomes of $X$. This can be done using the following commands:
+
+```{r}
+x1 <- sample(1:4, size=10000, replace=T)
+x2 <- sample(1:4, size=10000, replace=T)
+x.sum <- x1 + x2
+table(x.sum)/10000
+```
+
+Complete the rel.freq1 row in the table using the results returned from R.
+
+
+### (c)
+
+The 10000 trials of the experiment in (b) can be done alternatively 
+using only one instance of sample(...). In the below code chunk, 
+replace the `#?' with the appropriate vectors.
+
+```{r}
+x <- 2:8
+pmf <- c(1,2,3,4,3,2,1)/16
+x.sum1 <- sample(x, size = 10000, replace = T, prob = pmf)
+table(x.sum1)/10000
+```
+
+Complete the rel.freq2 row in the table using the results returned from R.
+
+
+### (d)
+
+Find $E(X)$ and $Var(X)$ (using the true pmf of $X$).
+
+```{r}
+# E(X)
+mean <- sum(x*pmf)
+mean
+
+# Var(X)
+sum((x-mean)^2*pmf)
+```
+
+
+### (e)
+
+Using x.sum and x.sum1, find the sample mean and sample variance of the 
+generated numbers.
+
+```{r}
+mean(x.sum)
+var(x.sum)
+mean(x.sum1)
+var(x.sum1)
+```
+
+Compare the sample means and the sample variances with $E(X)$ and $Var(X)$ 
+obtained in (d). Do their values differ? Explain why.
+
+**My answer:**
+
+The sample means and sample variances obtained from the simulations in Parts (b)
+and (c) are approximately equal, because they represent the same scenario, and 
+therefore are from the same distribution.
+
+These values are also approximately equal to the mean and variance of $X$ found 
+in part (d).
+

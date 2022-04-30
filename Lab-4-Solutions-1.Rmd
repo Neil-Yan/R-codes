@@ -1,0 +1,291 @@
+---
+title: "Probability for Statistics / Elements of Probability --- Lab 4 Solutions"
+output:
+  pdf_document: default
+  html_document:
+    theme: yeti
+---
+
+
+## Question 1
+
+The objective of this question is to find the moment-generating function and 
+various moments of a binomial distribution.
+
+Recall that in Lab 3 we learned how to define a hypergeometric random variable. 
+Similar commands can be used to define a binomial random variable. Enter ?dbinom 
+in the Console for a reference of how to use this function.
+
+### (a)
+
+Define the pmf of a binomial random variable $X$ with distribution $b(10, 0.4)$ 
+as a vector in R.
+
+```{r}
+x <- 0:10 
+dist <- dbinom(x,10,0.4)
+```
+
+
+### (b)
+
+Use the vector your defined in (a) to find $\mu$, $E(X^2)$, $\sigma^2$ and 
+$E(X^3)$.
+
+```{r}
+sum(x*dist)
+sum(x^2*dist)
+sum(x^2*dist) - sum(x*dist)^2
+sum(x^3*dist)
+```
+
+
+### (c)
+
+Recall that the kth moment of $X$ is given by $E(X^k)$. As such, in Part (b) you
+calculated both the second and third moments of $X$.
+
+Note the similarities in the code used to find $E(X^2)$ and $E(X^3)$. Referring 
+to this, create a function in R which calculates the kth moment of $X$ 
+(i.e. $E(X^k)$). The function should have one argument, k.
+
+```{r}
+X.moment <- function(k) {
+  x <- 0:10
+  sum(x^k*dbinom(x,10,0.4))
+}
+```
+
+
+### (d)
+
+Use this function to find the variance of $X$ again. You answer should be the 
+same as it was for Part (b).
+
+```{r}
+X.moment(2)-X.moment(1)^2
+```
+
+
+### (e)
+
+Use this function to find the 4th moment of $X$.
+
+```{r}
+X.moment(4)
+```
+
+
+### (f)
+
+Consider a new random variable $Y$ that has the distribution $b(n,p)$.
+
+Create a function which calculates the kth moment of $Y$, for some given values
+ of n and p. The function should have 3 arguments: k, n and p.
+
+```{r}
+Y.moment <- function(k,n,p) {
+  x <- 0:n
+  sum(x^k*dbinom(x,n,p))
+}
+```
+
+
+### (g)
+
+Find the 3rd moment of a random variable with distribution $b(17, 1/3)$ 
+(ideally using the function you defined in Part (f)).
+
+```{r}
+Y.moment(3,17,1/3)
+```
+
+
+### (h)
+
+Another way to find the kth moment of a distribution is to first define its 
+moment-generating function $M(t)$, find its kth derivative $M^{[k]}(t)$, and 
+then substitute in $t = 0$.
+
+Create a function in R which calculates the mgf $M(t)$ of $X$ (remember that 
+$M(t)=E(e^{tX})$).
+
+```{r}
+M <- function(t) {
+  x <- 0:10
+  sum(exp(t*x)*dbinom(x,10,0.4))
+}
+```
+
+
+### (i)
+
+Given R's difficulties in differentiating functions without a package, one can 
+use the first principles definition of the derivative instead:
+
+$f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}$
+
+Use this and the function you defined in Part (h) to find the 1st and 2nd 
+moments of $X$.
+
+```{r}
+h=0.00001 # the smaller h, the more accurate the derivative
+dM <- function(t) {
+  (M(t+h) - M(t))/h
+}
+dM(0)
+ddM <- function(t) {
+  (dM(t+h) - dM(t))/h
+}
+ddM(0)
+```
+
+Do either of these answers match your answers in Part (b)? Why?
+
+**My answer:**
+
+The answers in Parts (b) and (i) are very similar because the kth moment is $E(X^k)=M^{[k]}(t)$. The small difference between the answers in Parts (b) and (i) is only due to the fact that we use approximate derivation (with h not exactly zero). 
+
+
+### (j)
+
+Many distributions have an mgf that can be written explicitly. For example, the mgf of the binomial distribution has a known closed form expression (see lectures).
+
+
+When a closed form expression exists, we can perform symbolic differentiation using the imported D(...) function from the package MosaicCalc. 
+
+Run the following chunk of code to install and load this package:
+
+```{r, message=FALSE, warning=FALSE}
+# This code installs the package only if it is not already installed, and loads it.
+if(!("mosaicCalc" %in% installed.packages()[,"Package"])){
+  install.packages("mosaicCalc", repos = "https://cran.ms.unimelb.edu.au/")
+} 
+library("mosaicCalc")
+```
+
+Using the relationship between the moments of a distribution and the derivatives of the mgf, 
+we can, for example, find the 1st moment of $X\stackrel{d}{=} b(10, 0.4)$.
+
+```{r}
+# First, define the mgf as an explicit function of t (an `expression')
+mgf <- function(t) {
+  (0.6+0.4*exp(t))^10
+}
+
+# Differentiate this expression with respect to t, defining it as dmgf
+dmgf <- D(mgf(t)~t)
+
+# Evaluate this expression for t=0
+dmgf(0)
+
+```
+
+Find the 4th moment of $X$. Your answer should be the same as it was for part (e).
+
+```{r}
+ddmgf <- D(dmgf(t)~t)
+dddmgf <- D(ddmgf(t)~t)
+ddddmgf <- D(dddmgf(t)~t)
+ddddmgf(0)
+```
+
+
+***
+
+## Question 2
+
+The objective of this question is to use R to calculate probabilities and moments of a given binomial random variable.
+
+Let $X\stackrel{d}{=}b(30, 0.3)$.
+
+### (a)
+
+Find $P(X=10)$.
+
+```{r}
+dbinom(10,30,0.3)
+```
+
+
+### (b)
+
+Find $P(X\leq 10)$.
+
+```{r}
+pbinom(10,30,0.3)
+```
+
+
+### (c)
+
+Find $P(X\geq 10)$.
+
+```{r}
+1-pbinom(9,30,0.3)
+```
+
+
+### (d)
+
+Find P(X equals an odd number between 0 and 30).
+
+```{r}
+sum(dbinom(2*(0:14)+1, 30, 0.3))
+```
+
+
+### (e)
+
+Find $E(X^3)$.
+
+```{r}
+x=0:30
+sum(x^3*dbinom(x,30,0.3))
+```
+
+
+***
+
+## Question 3
+
+The objective of this question is to estimate the value of $\pi$ using the idea and result of Question 1 of Tutorial 4 --- Note that everybody knows the meaning of $\pi$, but nobody can write down the exact and explicit decimal representation of $\pi$. So estimating the value of $\pi$ is meaningful even though the method used here is clearly not the best.
+
+*Note: selecting at random a million values of x from [0,1] can be done using runif(10^6) command in R.*
+
+### (a)
+
+Using this information and the knowledge that you have learned about R so far, try to write up a few lines of R commands to generate an observation of W. Remember that your R commands must not involve the use of the true value of $\pi$.
+
+*Note that a command like mean(rbinom(1000,10^6,pi/4)) can be used to estimate $\pi$. But this is not the one we want because it involves the use of the true value of $\pi$.*
+
+If you find it difficult to write your own commands, refer to the solutions and understand the meaning of them.
+
+```{r}
+x <- runif(10^6)
+y <- runif(10^6)
+z <- x^2+y^2
+w <- sum(z < 1)
+```
+
+
+### (b)
+
+Once you get an observation of $W$, calculate W/250000 and see how the result is close to $\pi$.
+
+```{r}
+w/250000
+```
+
+
+### (c)
+
+Think about how you can improve the precision of your estimate of $\pi$.
+
+One way of doing this would be to implement the R commands developed by you into an R function. Then use this function to generate a number of observations of $W$. Then use the average of the generated $W$ values divided by 250000 to estimate $\pi$.
+
+```{r}
+# no single correct answer.
+
+```
+
